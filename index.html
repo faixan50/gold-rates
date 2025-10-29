@@ -1,35 +1,38 @@
 <script>
 async function loadRates() {
   try {
-    // gold price in USD/oz from metals.live through a CORS proxy
-    const proxy = "https://api.allorigins.win/get?url=";
-    const goldURL = encodeURIComponent("https://api.metals.live/v1/spot/gold");
-    const goldResp = await fetch(proxy + goldURL);
-    const goldData = JSON.parse((await goldResp.json()).contents);
-    const usdPerOunce = goldData[0].price;
+    // Fetch gold price in OMR per troy ounce using exchangerate.host
+    const res = await fetch("https://api.exchangerate.host/latest?base=XAU&symbols=OMR");
+    const data = await res.json();
+    const omrPerOunce = data.rates.OMR;
+    if (!omrPerOunce) throw new Error("Invalid response");
 
-    // USD→OMR rate
-    const fxResp = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=OMR");
-    const fxData = await fxResp.json();
-    const usdToOmr = fxData.rates.OMR;
+    // Convert ounce to gram
+    const gramsPerOunce = 31.1035;
+    const omrPerGram24 = omrPerOunce / gramsPerOunce;
 
-    const omrPerGram24 = (usdPerOunce / 31.1035) * usdToOmr;
+    // Calculate 21K and 18K
     const rates = {
       "24K": omrPerGram24,
       "21K": omrPerGram24 * 0.875,
       "18K": omrPerGram24 * 0.75
     };
 
-    for (const [karat, value] of Object.entries(rates)) {
-      document.getElementById(`k${karat.slice(1)}`).textContent = value.toFixed(3);
+    // Display prices
+    for (const [karat, price] of Object.entries(rates)) {
+      document.getElementById(`k${karat.slice(1)}`).textContent = price.toFixed(3);
     }
+
+    // Show update time
     document.getElementById("time").textContent =
       "Last updated: " + new Date().toLocaleTimeString();
   } catch (err) {
-    document.getElementById("time").textContent = "⚠️ Error fetching rates";
     console.error(err);
+    document.getElementById("time").textContent = "⚠️ Error loading rates";
   }
 }
+
+// Load now + refresh every minute
 loadRates();
 setInterval(loadRates, 60000);
 </script>
