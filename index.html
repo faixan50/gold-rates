@@ -1,29 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gold Rates - Al-Fairuz Jewellery</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    background-color: #ffffff;
+    font-family: 'Cinzel', serif;
+    color: #2e2e2e;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 700px;
+    margin: 60px auto;
+    padding: 40px;
+  }
+
+  img {
+    width: 140px;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 40px;
+    color: #c8a100;
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 30px;
+    margin-bottom: 20px;
+  }
+
+  th {
+    background-color: #c8a100;
+    color: #fff;
+    font-weight: 600;
+    padding: 14px;
+    font-size: 28px;
+  }
+
+  td {
+    padding: 18px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .karat {
+    font-weight: 600;
+  }
+
+  .price {
+    color: #000;
+  }
+
+  .time {
+    margin-top: 25px;
+    color: #888;
+    font-size: 20px;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="https://i.postimg.cc/MT2QxtTB/Untitled-design-zip-1.jpg" alt="Al-Fairuz Logo" />
+    <h1>Al-Fairuz Jewellery</h1>
+
+    <table>
+      <tr><th>Karat</th><th>Price (OMR)</th></tr>
+      <tr><td class="karat">24K</td><td id="k24" class="price">--</td></tr>
+      <tr><td class="karat">21K</td><td id="k21" class="price">--</td></tr>
+      <tr><td class="karat">18K</td><td id="k18" class="price">--</td></tr>
+    </table>
+
+    <div class="time" id="time">Loading...</div>
+  </div>
+
 <script>
 async function loadRates() {
   try {
-    // Fetch gold price in OMR per troy ounce using exchangerate.host
-    const res = await fetch("https://api.exchangerate.host/latest?base=XAU&symbols=OMR");
-    const data = await res.json();
-    const omrPerOunce = data.rates.OMR;
-    if (!omrPerOunce) throw new Error("Invalid response");
+    const response = await fetch("https://api.exchangerate.host/latest?base=XAU&symbols=OMR");
+    const data = await response.json();
 
-    // Convert ounce to gram
+    const omrPerOunce = data?.rates?.OMR;
+    if (!omrPerOunce) throw new Error("No OMR data");
+
     const gramsPerOunce = 31.1035;
     const omrPerGram24 = omrPerOunce / gramsPerOunce;
 
-    // Calculate 21K and 18K
     const rates = {
       "24K": omrPerGram24,
       "21K": omrPerGram24 * 0.875,
       "18K": omrPerGram24 * 0.75
     };
 
-    // Display prices
-    for (const [karat, price] of Object.entries(rates)) {
-      document.getElementById(`k${karat.slice(1)}`).textContent = price.toFixed(3);
+    for (const [karat, value] of Object.entries(rates)) {
+      const cell = document.getElementById(`k${karat.slice(1)}`);
+      cell.textContent = value.toFixed(3);
     }
 
-    // Show update time
     document.getElementById("time").textContent =
       "Last updated: " + new Date().toLocaleTimeString();
   } catch (err) {
@@ -32,7 +117,8 @@ async function loadRates() {
   }
 }
 
-// Load now + refresh every minute
 loadRates();
 setInterval(loadRates, 60000);
 </script>
+</body>
+</html>
