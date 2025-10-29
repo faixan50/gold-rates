@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gold Rates - Al-Fairuz Jewellery</title>
+<style>
+  body {
+    background: #fff9e6;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 650px;
+    margin: 60px auto;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  }
+  img { width: 130px; }
+  h1 {
+    font-size: 34px;
+    margin: 10px 0 20px;
+    color: #c8a100;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 28px;
+  }
+  th {
+    background: #c8a100;
+    color: white;
+    padding: 12px;
+    border-radius: 10px 10px 0 0;
+  }
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  .time {
+    margin-top: 20px;
+    color: #666;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://i.postimg.cc/MT2QxtTB/Untitled-design-zip-1.jpg" alt="logo" />
+    <h1>Gold Rates (OMR per gram)</h1>
+    <table id="table">
+      <tr><th>Karat</th><th>Price (OMR)</th></tr>
+      <tr><td>24K</td><td id="k24">--</td></tr>
+      <tr><td>21K</td><td id="k21">--</td></tr>
+      <tr><td>18K</td><td id="k18">--</td></tr>
+    </table>
+    <div class="time" id="time">Updating...</div>
+  </div>
+
+<script>
+async function loadRates() {
+  try {
+    // Gold price (USD per troy ounce)
+    const goldRes = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/GC=F");
+    const goldData = await goldRes.json();
+    const usdPerOunce = goldData.chart.result[0].meta.regularMarketPrice;
+
+    // USD → OMR rate
+    const fxRes = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/USDOMR=X");
+    const fxData = await fxRes.json();
+    const usdToOmr = fxData.chart.result[0].meta.regularMarketPrice;
+
+    const omrPerGram24k = (usdPerOunce / 31.1035) * usdToOmr;
+    const rates = {
+      "24K": omrPerGram24k,
+      "21K": omrPerGram24k * 0.875,
+      "18K": omrPerGram24k * 0.75
+    };
+
+    for (let [k, v] of Object.entries(rates))
+      document.getElementById(`k${k.slice(1)}`).textContent = v.toFixed(3);
+
+    document.getElementById("time").textContent =
+      "Last updated: " + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById("time").textContent = "⚠️ Error fetching rates";
+    console.error(e);
+  }
+}
+
+loadRates();
+setInterval(loadRates, 60000); // refresh every minute
+</script>
+</body>
+</html>
